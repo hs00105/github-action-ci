@@ -1,12 +1,14 @@
 name: My First Workflow
 
-on: push
+on: 
+  schedule:
+   - cron: "*/1 * * * *"
 
 permissions:
   contents: read
 
 jobs:
-  first_job:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout github repo
