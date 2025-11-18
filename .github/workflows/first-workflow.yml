@@ -1,8 +1,7 @@
 name: My First Workflow
 
 on: 
-  schedule:
-   - cron: "* * * * *"
+  workflow_dispatch: 
 
 permissions:
   contents: read
