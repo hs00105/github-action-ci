@@ -6,12 +6,19 @@ on:
 jobs:
   deploy:
     strategy:
+      max-parallel: 2
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest , windows-latest]
+        os: [ubuntu-latest , windows-latest, macos-latest]
+        images: [hello-world, alpine]
+        exclude:
+          - images: [hello-world]
+            os: windows-latest
+
     runs-on: ${{ matrix.os}}
     steps:
       - name: Echo Docker details
         run: docker info
       
       - name: Echo Hello World
-        run: docker run hello-world
+        run: docker run ${{ matrix.images }}
