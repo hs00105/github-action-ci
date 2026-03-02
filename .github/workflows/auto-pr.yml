@@ -45,9 +45,9 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          base: main
-          branch: dev
-          title: 'Auto PR for dev'
+          base: ${{github.ref_name}}
+          branch: main
+          title: 'Auto PR for ${{github.ref_name}}'
           body: 'This PR was automatically created for branch ${{ github.ref_name }}.'
 
   close-pr:
