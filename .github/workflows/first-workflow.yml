@@ -1,0 +1,17 @@
+name: First Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    strategy:
+      matrix:
+        os: [ubuntu-latest , windows-latest]
+    runs-on: ${{ matrix.os}}
+    steps:
+      - name: Echo Docker details
+        run: docker info
+      
+      - name: Echo Hello World
+        run: docker run hello-world
