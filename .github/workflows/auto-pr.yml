@@ -1,15 +1,12 @@
 name: Auto PR Management
 
 on:
-  create:
-  delete:
   push:
     branches:
       - '**'
 
 jobs:
   create-pr:
-    if: github.event.ref_type == 'branch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,7 +48,6 @@ jobs:
           body: 'This PR was automatically created for branch ${{ github.ref_name }}.'
 
   close-pr:
-    if: github.event.ref_type == 'branch'
     runs-on: ubuntu-latest
     steps:
       - name: Close PRs for deleted branch
