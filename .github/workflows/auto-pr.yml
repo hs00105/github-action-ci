@@ -3,6 +3,9 @@ name: Auto PR Management
 on:
   create:
   delete:
+  push:
+    branches:
+      - '**'
 
 jobs:
   create-pr:
@@ -68,7 +71,50 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: pr.number,
-                state: 'closed'
-              });
-              console.log(`Closed PR #${pr.number} for deleted branch ${branch}`);
-            }
+                create-pr:
+                  if: github.event.ref_type == 'branch' || github.event_name == 'push'
+                  runs-on: ubuntu-latest
+                  steps:
+                    - name: Checkout
+                      uses: actions/checkout@v4
+                    - name: Get branch name
+                      id: get_branch
+                      run: |
+                        if [ "${{ github.event_name }}" == "push" ]; then
+                          echo "branch_name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+                        else
+                          echo "branch_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+                        fi
+                    - name: Check for existing PR
+                      id: check_pr
+                      uses: actions/github-script@v6
+                      with:
+                        script: |
+                          const branch = process.env.BRANCH_NAME || '${{ steps.get_branch.outputs.branch_name }}';
+                          const { data: pullRequests } = await github.rest.pulls.list({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            state: 'open',
+                            head: `${context.repo.owner}:${branch}`
+                          });
+                          if (pullRequests.length > 0) {
+                            console.log('Existing pull request found:', pullRequests[0].html_url);
+                            return { prExists: true, prUrl: pullRequests[0].html_url };
+                          } else {
+                            console.log('No existing pull request found.');
+                            return { prExists: false };
+                          }
+                    - name: Fail if PR exists
+                      if: steps.check_pr.outputs.prExists == 'true' && github.event_name != 'push'
+                      run: |
+                        echo "A pull request already exists: ${{ steps.check_pr.outputs.prUrl }}"
+                        exit 1
+                    - name: Create Pull Request
+                      if: steps.check_pr.outputs.prExists != 'true'
+                      uses: peter-evans/create-pull-request@v5
+                      with:
+                        token: ${{ secrets.GITHUB_TOKEN }}
+                        base: main
+                        branch: ${{ steps.get_branch.outputs.branch_name }}
+                        title: 'Auto PR for ${{ steps.get_branch.outputs.branch_name }}'
+                        body: 'This PR was automatically created for branch ${{ steps.get_branch.outputs.branch_name }}.'
