@@ -43,8 +43,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: main
-          branch: ${{github.ref_name}}
-          title: 'Auto PR for ${{github.ref_name}}'
+          branch: dev
+          title: 'Auto PR for dev'
           body: 'This PR was automatically created for branch ${{ github.ref_name }}.'
 
   close-pr:
